@@ -20,9 +20,9 @@ type Config struct {
 
 // Load loads configuration from environment variables or an .env file
 func Load() Config {
-	// Load .env file if it exists
+	// Load .env file if it exists (ignore error if file doesn't exist)
 	if err := godotenv.Load(); err != nil {
-		log.Fatal("Failed to start server:", err)
+		log.Printf("No .env file found or error loading .env file: %v", err)
 	}
 	setLogLevel()
 	return Config{
