@@ -2,8 +2,10 @@ package config
 
 import (
 	"github.com/joho/godotenv"
+	"github.com/rs/zerolog"
 	"log"
 	"os"
+	"strings"
 )
 
 // Config contains the application configuration
@@ -21,6 +23,7 @@ func Load() *Config {
 	if err := godotenv.Load(); err != nil {
 		log.Fatal("Failed to start server:", err)
 	}
+	setLogLevel()
 	return &Config{
 		ServerPort:         getEnv("SERVER_PORT", "8080"),
 		WhatsAppAPIKey:     getEnv("WHATSAPP_API_KEY", ""),
@@ -36,4 +39,23 @@ func getEnv(key, defaultValue string) string {
 		return value
 	}
 	return defaultValue
+}
+
+// setLogLevel sets the log level defined in LOG_LEVEL environment variable
+func setLogLevel() {
+	levels := map[string]zerolog.Level{
+		"debug": zerolog.DebugLevel,
+		"info":  zerolog.InfoLevel,
+		"warn":  zerolog.WarnLevel,
+		"error": zerolog.ErrorLevel,
+		"fatal": zerolog.FatalLevel,
+		"panic": zerolog.PanicLevel,
+	}
+	levelEnv := strings.ToLower(getEnv("LOG_LEVEL", "info"))
+
+	level, ok := levels[levelEnv]
+	if !ok {
+		level = zerolog.InfoLevel
+	}
+	zerolog.SetGlobalLevel(level)
 }

@@ -1,10 +1,11 @@
 package domain
 
-// SendMessageRequest represents the request to send a message
-type SendMessageRequest struct {
-	To          string `json:"to" binding:"required"`
-	Content     string `json:"content" binding:"required"`
-	MessageType string `json:"message_type,omitempty"`
+// Message represents the request to send a message
+type Message struct {
+	PhoneNumberID string `json:"phone_number_id" binding:"required"`
+	To            string `json:"to" binding:"required"`
+	Content       string `json:"content" binding:"required"`
+	MessageType   string `json:"message_type,omitempty"`
 }
 
 // SendMessageResponse represents the entity after sending a message

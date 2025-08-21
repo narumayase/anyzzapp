@@ -25,7 +25,7 @@ func NewWhatsAppHandler(
 
 // SendMessage handles POST /api/v1/whatsapp/send
 func (h *WhatsAppHandler) SendMessage(c *gin.Context) {
-	var req domain.SendMessageRequest
+	var req domain.Message
 
 	// Bind JSON request to struct
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -37,28 +37,13 @@ func (h *WhatsAppHandler) SendMessage(c *gin.Context) {
 		return
 	}
 
-	// Get phone number ID from query parameter or header
-	phoneNumberID := c.Query("phone_number_id")
-	if phoneNumberID == "" {
-		phoneNumberID = c.GetHeader("X-Phone-Number-ID")
-	}
-
-	if phoneNumberID == "" {
-		c.JSON(http.StatusBadRequest, domain.ErrorResponse{
-			Error:   "missing_phone_number_id",
-			Message: "Phone number ID is required (use query param 'phone_number_id' or header 'X-Phone-Number-ID')",
-			Code:    http.StatusBadRequest,
-		})
-		return
-	}
-
 	// Default message type to text if not provided
 	if req.MessageType == "" {
 		req.MessageType = "text"
 	}
 
 	// Call use case
-	response, err := h.whatsappUseCase.SendMessage(phoneNumberID, req.To, req.Content, req.MessageType)
+	response, err := h.whatsappUseCase.SendMessage(req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, domain.ErrorResponse{
 			Error:   "send_failed",

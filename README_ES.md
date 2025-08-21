@@ -1,6 +1,6 @@
 # anyzzapp - API de Bot para WhatsApp
 
-Este proyecto proporciona una API que integra la API de Bot de WhatsApp.
+Este proyecto proporciona una API que integra la API de Bots de WhatsApp y responde el mensaje con una LLM API.
 
 ## Características
 
@@ -38,10 +38,11 @@ go run main.go
 
 Crear un archivo `.env` basado en `env.example`:
 
-- `WHATSAPP_API_KEY`: Clave de la API de WhatsApp Business (requerido para Meta)
-- `WHATSAPP_BASE_URL`: URL de WhatsApp. Ejemplo: https://graph.facebook.com/v18.0
+- `WHATSAPP_API_KEY`: Clave de la API de WhatsApp Business (requerido para Meta, ver https://developers.facebook.com)
+- `WHATSAPP_BASE_URL`: URL de WhatsApp. Ejemplo: https://graph.facebook.com/v20.0
 - `WEBHOOK_VERIFY_TOKEN`: Token de verificación del Webhook de WhatsApp.
 - `SERVER_PORT`: Puerto del servidor (por defecto: 8080)
+- `LLM_URL`: LLM API URL
 
 ### Configuración de WhatsApp Business API
 
@@ -51,7 +52,7 @@ Crear un archivo `.env` basado en `env.example`:
    - Obtener token de acceso y ID del número de teléfono
 
 2. **Configurar Webhook:**
-   - Establecer URL del webhook: `https://tudominio.com/api/v1/whatsapp/webhook`
+   - Establecer URL del webhook en Meta: `https://tudominio.com/api/v1/whatsapp/webhook`
    - Usar tu `WEBHOOK_VERIFY_TOKEN` para verificación
 
 ## 📡 Endpoints
@@ -62,11 +63,13 @@ Crear un archivo `.env` basado en `env.example`:
 
 ```json
 {
-   "to": "1234567890",
+   "to": "541112345678",
    "content": "¡Hola desde anyzzapp!",
    "message_type": "text"
 }
 ```
+
+to: es el número de teléfono del destinatario en formato internacional E.164 (sin +, sin espacios, sin guiones).
 
 **Respuesta:**
 
@@ -78,14 +81,19 @@ Crear un archivo `.env` basado en `env.example`:
 }
 ```
 
-### Webhook (WhatsApp → Tu API)
+### Webhook (WhatsApp → Esta API)
+
+https://developers.facebook.com/docs/whatsapp/cloud-api/get-started#configure-webhooks
 
 ```
 POST /api/v1/whatsapp/webhook
-GET /api/v1/whatsapp/webhook (para verificación)
 ```
 
-//TODO documentación de webhook
+#### Endpoint de Verificación del Webhook (usado por WhatsApp Business API):
+
+```
+GET /api/v1/whatsapp/webhook
+```
 
 ### GET /health
 
@@ -111,11 +119,13 @@ curl -X POST http://localhost:8080/api/v1/whatsapp/send \
   -H "Content-Type: application/json" \
   -H "X-Phone-Number-ID: TU_PHONE_NUMBER_ID" \
   -d '{
-    "to": "1234567890",
+    "to": "541112345678",
     "content": "¡Hola desde anyzzapp!",
     "message_type": "text"
   }'
 ```
+
+nota: en modo prueba, WhatsApp no permite mensajes salientes del tipo `text` de su bot, primero el usuario debe escribirle al bot para que este pueda responder.
 
 ## 🎗️ Arquitectura
 
@@ -143,7 +153,8 @@ anyzzapp/
 │   └── application/      # Casos de uso
 ├── main.go               # Punto de entrada principal
 ├── go.mod                # Dependencias de Go
-└── README.md             # Este archivo
+├── README_ES.md          # Este archivo
+└── README.md             # README en inglés
 ```
 
 ## Próximos pasos

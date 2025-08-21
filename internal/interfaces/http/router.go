@@ -15,7 +15,6 @@ func NewRouter(config config.Config,
 
 	// Add middlewares
 	router.Use(middleware.CORS())
-	router.Use(middleware.Logger())
 	router.Use(middleware.ErrorHandler())
 
 	// Initialize handlers

@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/rs/zerolog/log"
 	"net/http"
 	"time"
 )
@@ -30,26 +31,26 @@ func NewWhatsAppRepository(config config.Config) domain.WhatsAppRepository {
 }
 
 // SendMessage sends a message through WhatsApp API
-func (r *WhatsAppRepository) SendMessage(phoneNumberID, to, content, messageType string) (*domain.SendMessageResponse, error) {
+func (r *WhatsAppRepository) SendMessage(message domain.Message) (*domain.SendMessageResponse, error) {
 	// Default message type to text if not specified
-	if messageType == "" {
-		messageType = "text"
+	if message.MessageType == "" {
+		message.MessageType = "text"
 	}
 	// TODO add more types?
 
 	// Prepare the payload
-	payload := entity.SendMessagePayload{
+	payload := entity.SendWhatsAppMessagePayload{
 		MessagingProduct: "whatsapp",
 		RecipientType:    "individual",
-		To:               to,
-		Type:             messageType,
+		To:               message.To,
+		Type:             message.MessageType,
 	}
 
 	// Currently only supporting text messages //TODO
-	if messageType == "text" {
+	if message.MessageType == "text" {
 		payload.Text = &entity.Text{
 			PreviewURL: false,
-			Body:       content,
+			Body:       message.Content,
 		}
 	}
 
@@ -60,7 +61,12 @@ func (r *WhatsAppRepository) SendMessage(phoneNumberID, to, content, messageType
 	}
 
 	// Create request
-	url := fmt.Sprintf("%s/%s/messages", r.baseURL, phoneNumberID)
+	url := fmt.Sprintf("%s/%s/messages", r.baseURL, message.PhoneNumberID)
+
+	log.Debug().Msgf("payload to whatsapp: %s", string(jsonPayload))
+	log.Debug().Msgf("text content %v", message.Content)
+	log.Debug().Msgf("url %s", url)
+
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonPayload))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
@@ -83,6 +89,7 @@ func (r *WhatsAppRepository) SendMessage(phoneNumberID, to, content, messageType
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return nil, fmt.Errorf("failed to decode entity: %w", err)
 	}
+	log.Debug().Msgf("whatsapp response: %v", resp)
 
 	// Check for errors
 	if resp.StatusCode != http.StatusOK {
@@ -99,7 +106,6 @@ func (r *WhatsAppRepository) SendMessage(phoneNumberID, to, content, messageType
 			Message: "No message ID returned from API",
 		}, fmt.Errorf("no message ID returned from API")
 	}
-
 	return &domain.SendMessageResponse{
 		MessageID: result.Messages[0].ID,
 		Status:    "sent",

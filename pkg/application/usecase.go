@@ -3,6 +3,8 @@ package application
 import (
 	"anyzzapp/pkg/domain"
 	"fmt"
+
+	"github.com/rs/zerolog/log"
 )
 
 // WhatsAppUseCase implements WhatsAppUseCaseInterface
@@ -21,20 +23,19 @@ func NewWhatsAppUseCase(whatsappRepo domain.WhatsAppRepository,
 }
 
 // SendMessage handles the business logic for sending a message
-func (uc *WhatsAppUseCase) SendMessage(phoneNumberID, to, content, messageType string) (*domain.SendMessageResponse, error) {
+func (uc *WhatsAppUseCase) SendMessage(message domain.Message) (*domain.SendMessageResponse, error) {
 	// Validate input
-	if phoneNumberID == "" {
+	if message.PhoneNumberID == "" {
 		return nil, fmt.Errorf("phone number ID is required")
 	}
-	if to == "" {
+	if message.To == "" {
 		return nil, fmt.Errorf("recipient phone number is required")
 	}
-	if content == "" {
+	if message.Content == "" {
 		return nil, fmt.Errorf("message content is required")
 	}
-
 	// Send message through WhatsApp API
-	response, err := uc.whatsappRepo.SendMessage(phoneNumberID, to, content, messageType)
+	response, err := uc.whatsappRepo.SendMessage(message)
 	if err != nil {
 		return response, fmt.Errorf("failed to send message: %w", err)
 	}
@@ -51,6 +52,8 @@ func (uc *WhatsAppUseCase) ProcessIncomingWebhook(webhook *domain.WebhookRequest
 	for _, entry := range webhook.Entry {
 		for _, change := range entry.Changes {
 			// Process incoming messages
+			log.Debug().Msgf("message received: %s - metadata phone number id: %s", change.Value.Messages, change.Value.Metadata.PhoneNumberID)
+
 			if err := uc.processMessages(change.Value.Messages, change.Value.Metadata.PhoneNumberID); err != nil {
 				return fmt.Errorf("failed to process messages: %w", err)
 			}
@@ -75,7 +78,7 @@ func (uc *WhatsAppUseCase) processMessages(messages []domain.WebhookMessage, pho
 		// Mark message as read
 		if err = uc.whatsappRepo.MarkAsRead(phoneNumberID, msg.ID); err != nil {
 			// Log error but don't fail the operation
-			fmt.Printf("Warning: failed to mark message as read: %v\n", err)
+			log.Warn().Msgf("failed to mark message as read: %v\n", err)
 		}
 
 		// Auto-reply
@@ -84,18 +87,30 @@ func (uc *WhatsAppUseCase) processMessages(messages []domain.WebhookMessage, pho
 
 			// Send the question to LLM
 			if replyMessage, err = uc.llmRepo.SendMessage(content); err != nil {
-				fmt.Printf("Warning: failed to send message: %v\n", err)
-				//TODO por ahora no manejamos el error para poder devolver una respuesta "mockeada"
-			} else {
-				replyMessage = fmt.Sprintf("Me dijiste: %s", content)
+				log.Err(fmt.Errorf("failed to send message: %v\n", err))
+				return err
 			}
 			// Send the reply
-			_, err = uc.whatsappRepo.SendMessage(phoneNumberID, msg.From, replyMessage, "text")
-			if err != nil {
-				fmt.Printf("Warning: failed to send auto-reply: %v\n", err)
+			if _, err = uc.whatsappRepo.SendMessage(domain.Message{
+				PhoneNumberID: phoneNumberID,
+				To:            removeNine(msg.From),
+				Content:       replyMessage,
+				MessageType:   "text",
+			}); err != nil {
+				log.Err(fmt.Errorf("failed to send auto-reply: %v\n", err))
 				return err
 			}
 		}
 	}
 	return nil
+}
+
+// removeNine for Argentinian numbers it's necessary to remove the 9 from the reception phone number to send messages to it.
+func removeNine(phoneNumber string) string {
+	// example: phoneNumber = "5491112345678"
+	if len(phoneNumber) == 13 && phoneNumber[:2] == "54" && phoneNumber[2] == '9' {
+		return phoneNumber[:2] + phoneNumber[3:]
+	}
+	// result: "541112345678"
+	return phoneNumber
 }

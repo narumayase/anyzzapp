@@ -2,7 +2,7 @@ package domain
 
 // WhatsAppRepository interface defines the contract for WhatsApp operations
 type WhatsAppRepository interface {
-	SendMessage(phoneNumberID, to, content, messageType string) (*SendMessageResponse, error)
+	SendMessage(message Message) (*SendMessageResponse, error)
 	MarkAsRead(phoneNumberID, messageID string) error
 }
 

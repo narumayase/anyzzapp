@@ -6,6 +6,7 @@ import (
 	"anyzzapp/pkg/domain"
 	"bytes"
 	"encoding/json"
+	"github.com/rs/zerolog/log"
 	"io/ioutil"
 	"net/http"
 )
@@ -45,5 +46,7 @@ func (r *LLMRepository) SendMessage(prompt string) (string, error) {
 	if err := json.Unmarshal(body, &response); err != nil {
 		return "", err
 	}
+	log.Debug().Msgf("llm response: %v", response)
+
 	return response.Response, nil
 }
