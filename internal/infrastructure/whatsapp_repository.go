@@ -4,29 +4,25 @@ import (
 	"anyzzapp/internal/config"
 	"anyzzapp/internal/infrastructure/entity"
 	"anyzzapp/pkg/domain"
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/rs/zerolog/log"
 	"net/http"
-	"time"
 )
 
 // WhatsAppRepository implements WhatsAppRepository
 type WhatsAppRepository struct {
 	apiKey  string
 	baseURL string
-	client  *http.Client
+	client  HttpClient
 }
 
 // NewWhatsAppRepository creates a new instance of WhatsAppRepository
-func NewWhatsAppRepository(config config.Config) domain.WhatsAppRepository {
+func NewWhatsAppRepository(config config.Config, client HttpClient) domain.WhatsAppRepository {
 	return &WhatsAppRepository{
 		apiKey:  config.WhatsAppAPIKey,
 		baseURL: config.WhatsAppBaseURL,
-		client: &http.Client{
-			Timeout: 30 * time.Second,
-		},
+		client:  client,
 	}
 }
 
@@ -36,8 +32,7 @@ func (r *WhatsAppRepository) SendMessage(message domain.Message) (*domain.SendMe
 	if message.MessageType == "" {
 		message.MessageType = "text"
 	}
-	// TODO add more types?
-
+	// TODO add more types - add audio type
 	// Prepare the payload
 	payload := entity.SendWhatsAppMessagePayload{
 		MessagingProduct: "whatsapp",
@@ -45,47 +40,21 @@ func (r *WhatsAppRepository) SendMessage(message domain.Message) (*domain.SendMe
 		To:               message.To,
 		Type:             message.MessageType,
 	}
-
-	// Currently only supporting text messages //TODO
+	// Currently only supporting text messages //TODO - add audio type
 	if message.MessageType == "text" {
 		payload.Text = &entity.Text{
 			PreviewURL: false,
 			Body:       message.Content,
 		}
 	}
-
-	// Convert payload to JSON
-	jsonPayload, err := json.Marshal(payload)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal payload: %w", err)
-	}
-
-	// Create request
 	url := fmt.Sprintf("%s/%s/messages", r.baseURL, message.PhoneNumberID)
-
-	log.Debug().Msgf("payload to whatsapp: %s", string(jsonPayload))
-	log.Debug().Msgf("text content %v", message.Content)
-	log.Debug().Msgf("url %s", url)
-
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonPayload))
+	// Execute POST
+	resp, err := r.client.Post(payload, url)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %w", err)
+		return nil, err
 	}
-
-	// Set headers
-	req.Header.Set("Authorization", "Bearer "+r.apiKey)
-	req.Header.Set("Content-Type", "application/json")
-
-	// Execute request
-	resp, err := r.client.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("failed to execute request: %w", err)
-	}
-	defer resp.Body.Close()
-
 	// Parse entity
 	result := entity.Result{}
-
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return nil, fmt.Errorf("failed to decode entity: %w", err)
 	}
@@ -98,6 +67,7 @@ func (r *WhatsAppRepository) SendMessage(message domain.Message) (*domain.SendMe
 			Message: result.Error.Message,
 		}, fmt.Errorf("API error: %s (code: %d)", result.Error.Message, result.Error.Code)
 	}
+	defer resp.Body.Close()
 
 	// Check if we got a message ID
 	if len(result.Messages) == 0 {
@@ -126,30 +96,15 @@ func (r *WhatsAppRepository) MarkAsRead(phoneNumberID, messageID string) error {
 		Status:           "read",
 		MessageID:        messageID,
 	}
-
-	jsonPayload, err := json.Marshal(payload)
-	if err != nil {
-		return fmt.Errorf("failed to marshal payload: %w", err)
-	}
-
 	url := fmt.Sprintf("%s/%s/messages", r.baseURL, phoneNumberID)
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonPayload))
+	// Execute POST
+	resp, err := r.client.Post(payload, url)
 	if err != nil {
-		return fmt.Errorf("failed to create request: %w", err)
-	}
-
-	req.Header.Set("Authorization", "Bearer "+r.apiKey)
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := r.client.Do(req)
-	if err != nil {
-		return fmt.Errorf("failed to execute request: %w", err)
+		return err
 	}
 	defer resp.Body.Close()
-
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("API error: status code %d", resp.StatusCode)
 	}
-
 	return nil
 }

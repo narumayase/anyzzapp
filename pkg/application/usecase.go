@@ -65,7 +65,6 @@ func (uc *WhatsAppUseCase) ProcessIncomingWebhook(webhook *domain.WebhookRequest
 // processMessages handles incoming messages
 func (uc *WhatsAppUseCase) processMessages(messages []domain.WebhookMessage, phoneNumberID string) error {
 	for _, msg := range messages {
-
 		// Extract message content based on type
 		var content string
 		var err error
@@ -80,11 +79,9 @@ func (uc *WhatsAppUseCase) processMessages(messages []domain.WebhookMessage, pho
 			// Log error but don't fail the operation
 			log.Warn().Msgf("failed to mark message as read: %v\n", err)
 		}
-
 		// Auto-reply
 		if content != "" && msg.Type == "text" {
 			replyMessage := ""
-
 			// Send the question to LLM
 			if replyMessage, err = uc.llmRepo.SendMessage(content); err != nil {
 				log.Err(fmt.Errorf("failed to send message: %v\n", err))

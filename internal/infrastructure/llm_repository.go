@@ -4,48 +4,42 @@ import (
 	"anyzzapp/internal/config"
 	"anyzzapp/internal/infrastructure/entity"
 	"anyzzapp/pkg/domain"
-	"bytes"
 	"encoding/json"
+	"fmt"
 	"github.com/rs/zerolog/log"
 	"io/ioutil"
-	"net/http"
 )
 
 type LLMRepository struct {
 	config config.Config
+	client HttpClient
 }
 
-func NewLLMRepository(config config.Config) domain.LLMRepository {
-	return &LLMRepository{config: config}
+func NewLLMRepository(config config.Config, client HttpClient) domain.LLMRepository {
+	return &LLMRepository{
+		config: config,
+		client: client,
+	}
 }
 
 func (r *LLMRepository) SendMessage(prompt string) (string, error) {
 	payload := entity.Request{
 		Prompt: prompt,
 	}
-	jsonData, err := json.Marshal(payload)
+	// Execute POST
+	resp, err := r.client.Post(payload, r.config.LLMUrl)
 	if err != nil {
 		return "", err
 	}
-	req, err := http.NewRequest("POST", r.config.LLMUrl, bytes.NewBuffer(jsonData))
-	if err != nil {
-		return "", err
-	}
-	req.Header.Set("Content-Type", "application/json")
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-
 	body, _ := ioutil.ReadAll(resp.Body)
+
+	fmt.Printf("body: %s\n", string(body))
 
 	var response entity.Response
 	if err := json.Unmarshal(body, &response); err != nil {
 		return "", err
 	}
+	defer resp.Body.Close()
 	log.Debug().Msgf("llm response: %v", response)
 
 	return response.Response, nil

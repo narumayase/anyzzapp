@@ -15,21 +15,23 @@ type Config struct {
 	WhatsAppBaseURL    string
 	WebhookVerifyToken string
 	LLMUrl             string
+	LLMBearerToken     string
 }
 
 // Load loads configuration from environment variables or an .env file
-func Load() *Config {
+func Load() Config {
 	// Load .env file if it exists
 	if err := godotenv.Load(); err != nil {
 		log.Fatal("Failed to start server:", err)
 	}
 	setLogLevel()
-	return &Config{
+	return Config{
 		ServerPort:         getEnv("SERVER_PORT", "8080"),
 		WhatsAppAPIKey:     getEnv("WHATSAPP_API_KEY", ""),
-		WhatsAppBaseURL:    getEnv("WHATSAPP_BASE_URL", "https://graph.facebook.com/v18.0"),
+		WhatsAppBaseURL:    getEnv("WHATSAPP_BASE_URL", "https://graph.facebook.com/v20.0"),
 		WebhookVerifyToken: getEnv("WEBHOOK_VERIFY_TOKEN", ""),
 		LLMUrl:             getEnv("LLM_URL", "http://localhost:8081/api/v1/chat/ask"),
+		LLMBearerToken:     getEnv("LLM_BEARER_TOKEN", ""),
 	}
 }
 
