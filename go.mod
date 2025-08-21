@@ -1,6 +1,6 @@
 module anyzzapp
 
-go 1.24.6
+go 1.24.4
 
 require (
 	github.com/gin-contrib/cors v1.5.0

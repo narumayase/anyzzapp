@@ -2,6 +2,7 @@ package infrastructure
 
 import (
 	"anyzzapp/internal/config"
+	client2 "anyzzapp/internal/infrastructure/client"
 	"anyzzapp/internal/infrastructure/entity"
 	"anyzzapp/pkg/domain"
 	"encoding/json"
@@ -12,10 +13,10 @@ import (
 
 type LLMRepository struct {
 	config config.Config
-	client HttpClient
+	client client2.HttpClient
 }
 
-func NewLLMRepository(config config.Config, client HttpClient) domain.LLMRepository {
+func NewLLMRepository(config config.Config, client client2.HttpClient) domain.LLMRepository {
 	return &LLMRepository{
 		config: config,
 		client: client,

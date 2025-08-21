@@ -1,4 +1,4 @@
-# anyzzapp - API de Bot para WhatsApp
+# anyzzapp - API de Bot para WhatsApp + LLM
 
 Este proyecto proporciona una API que integra la API de Bots de WhatsApp y responde el mensaje con una LLM API.
 
@@ -157,6 +157,54 @@ anyzzapp/
 └── README.md             # README en inglés
 ```
 
+## 🧪 Pruebas
+
+### Ejecutar Pruebas
+
+Para ejecutar todas las pruebas:
+
+```bash
+go test ./...
+```
+
+Para ejecutar pruebas con salida detallada:
+
+```bash
+go test -v ./...
+```
+
+Para ejecutar pruebas de un paquete específico:
+
+```bash
+go test ./internal/config/
+go test ./cmd/server/
+```
+
+### Cobertura de Pruebas
+
+Para verificar la cobertura de pruebas (excluyendo mocks):
+
+```bash
+# Generar reporte de cobertura
+go test -coverprofile=coverage.out ./...
+
+# Ver reporte de cobertura en terminal
+go tool cover -func=coverage.out
+
+# Generar reporte HTML de cobertura
+go tool cover -html=coverage.out -o coverage.html
+
+# Ver cobertura excluyendo mocks
+go test -coverprofile=coverage.out ./... && \
+go tool cover -func=coverage.out | grep -v "mocks"
+```
+
+### Ejecutar Benchmarks
+
+```bash
+go test -bench=. ./...
+```
+
 ## Próximos pasos
 
 - **Agregar tu clave de WhatsApp API** en el archivo `.env`
@@ -164,4 +212,6 @@ anyzzapp/
 
 ## Backlog
 
-- [ ] Pruebas unitarias
+- [x] Pruebas unitarias
+- [ ] Pruebas de integración
+- [ ] Documentación de API con Swagger

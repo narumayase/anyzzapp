@@ -2,6 +2,7 @@ package infrastructure
 
 import (
 	"anyzzapp/internal/config"
+	client2 "anyzzapp/internal/infrastructure/client"
 	"anyzzapp/internal/infrastructure/entity"
 	"anyzzapp/pkg/domain"
 	"encoding/json"
@@ -14,11 +15,11 @@ import (
 type WhatsAppRepository struct {
 	apiKey  string
 	baseURL string
-	client  HttpClient
+	client  client2.HttpClient
 }
 
 // NewWhatsAppRepository creates a new instance of WhatsAppRepository
-func NewWhatsAppRepository(config config.Config, client HttpClient) domain.WhatsAppRepository {
+func NewWhatsAppRepository(config config.Config, client client2.HttpClient) domain.WhatsAppRepository {
 	return &WhatsAppRepository{
 		apiKey:  config.WhatsAppAPIKey,
 		baseURL: config.WhatsAppBaseURL,

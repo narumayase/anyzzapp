@@ -4,6 +4,7 @@ import (
 	"anyzzapp/cmd/server"
 	"anyzzapp/internal/config"
 	"anyzzapp/internal/infrastructure"
+	"anyzzapp/internal/infrastructure/client"
 	"anyzzapp/pkg/application"
 	"net/http"
 )
@@ -13,10 +14,10 @@ func main() {
 	cfg := config.Load()
 
 	llmClient := &http.Client{}
-	llmHttpClient := infrastructure.NewHttpClient(llmClient, cfg.LLMBearerToken)
+	llmHttpClient := client.NewHttpClient(llmClient, cfg.LLMBearerToken)
 
 	whatsAppClient := &http.Client{}
-	whatsappHttpClient := infrastructure.NewHttpClient(whatsAppClient, cfg.WhatsAppAPIKey)
+	whatsappHttpClient := client.NewHttpClient(whatsAppClient, cfg.WhatsAppAPIKey)
 
 	// Initialize repository layers
 	whatsappRepo := infrastructure.NewWhatsAppRepository(cfg, whatsappHttpClient)

@@ -159,6 +159,54 @@ anyzzapp/
 └── README.md             # This file
 ```
 
+## 🧪 Testing
+
+### Running Tests
+
+To run all tests:
+
+```bash
+go test ./...
+```
+
+To run tests with verbose output:
+
+```bash
+go test -v ./...
+```
+
+To run tests for a specific package:
+
+```bash
+go test ./internal/config/
+go test ./cmd/server/
+```
+
+### Test Coverage
+
+To check test coverage (excluding mocks):
+
+```bash
+# Generate coverage report
+go test -coverprofile=coverage.out ./...
+
+# View coverage report in terminal
+go tool cover -func=coverage.out
+
+# Generate HTML coverage report
+go tool cover -html=coverage.out -o coverage.html
+
+# View coverage excluding mocks
+go test -coverprofile=coverage.out ./... && \
+go tool cover -func=coverage.out | grep -v "mocks"
+```
+
+### Running Benchmarks
+
+```bash
+go test -bench=. ./...
+```
+
 ## Next Steps
 
 - **Add your WhatsApp API key** to the `.env` file
@@ -166,4 +214,6 @@ anyzzapp/
 
 ## Backlog
 
-- [ ] Unit Tests 
+- [x] Unit Tests 
+- [ ] Integration tests
+- [ ] API documentation with Swagger
