@@ -52,7 +52,7 @@ func (uc *WhatsAppUseCase) ProcessIncomingWebhook(webhook *domain.WebhookRequest
 	for _, entry := range webhook.Entry {
 		for _, change := range entry.Changes {
 			// Process incoming messages
-			log.Debug().Msgf("message received: %s - metadata phone number id: %s", change.Value.Messages, change.Value.Metadata.PhoneNumberID)
+			log.Debug().Msgf("message received: %v - metadata phone number id: %s", change.Value.Messages, change.Value.Metadata.PhoneNumberID)
 
 			if err := uc.processMessages(change.Value.Messages, change.Value.Metadata.PhoneNumberID); err != nil {
 				return fmt.Errorf("failed to process messages: %w", err)
