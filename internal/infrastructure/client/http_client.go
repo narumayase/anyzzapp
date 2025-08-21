@@ -42,7 +42,7 @@ func (c *HttpClientImpl) Post(payload interface{}, url string) (*http.Response, 
 
 	// Set headers
 	req.Header.Set("Authorization", "Bearer "+c.bearerToken)
-	// TODO add content type?
+	req.Header.Set("Content-Type", "application/json")
 
 	// Execute request
 	resp, err := c.client.Do(req)
