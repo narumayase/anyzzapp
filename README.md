@@ -1,11 +1,11 @@
-# anyzzapp - WhatsApp Bot API
+# anyzzapp - WhatsApp Bot API + LLM
 
-This project provides an API that integrates WhatsApp Bot API and responds to the message with an LLM API.
+This project provides an API that integrates the WhatsApp Bots API and responds to messages with an LLM API.
 
 ## Features
 
-- 📱 **WhatsApp Integration** - Send and receive messages via WhatsApp Business API.
-- 🔄 **Webhook Support** - Handle incoming messages with an LLM API.
+- 📱 **WhatsApp Integration** - Send and receive messages via WhatsApp Business API
+- 🔄 **Webhook Support** - Handle incoming messages with an LLM API
 
 ## Prerequisites
 
@@ -38,9 +38,9 @@ go run main.go
 
 Create a `.env` file based on `env.example`:
 
-- `WHATSAPP_API_KEY`: WhatsApp Business API key (required for Meta, view https://developers.facebook.com)
+- `WHATSAPP_API_KEY`: WhatsApp Business API key (required for Meta, see https://developers.facebook.com)
 - `WHATSAPP_BASE_URL`: WhatsApp URL. Example: https://graph.facebook.com/v20.0
-- `WEBHOOK_VERIFY_TOKEN`: WhatsApp Webhook Verify.
+- `WEBHOOK_VERIFY_TOKEN`: WhatsApp Webhook verification token.
 - `SERVER_PORT`: Server port (default: 8080)
 - `LLM_URL`: LLM API URL
 
@@ -48,10 +48,10 @@ Create a `.env` file based on `env.example`:
 
 https://developers.facebook.com
 
-1. **Get API Access:**
+1. **Get API access:**
     - Create a Meta Business account
     - Set up WhatsApp Business API
-    - Get your access token and phone number ID
+    - Get access token and phone number ID
 
 2. **Configure Webhook:**
     - Set webhook URL in Meta: `https://yourdomain.com/api/v1/whatsapp/webhook`
@@ -65,25 +65,25 @@ https://developers.facebook.com
 
 ```json
 {
-   "to": "541112345678", 
-   "content": "Hello from anyzzapp!", 
-   "message_type": "text"
+  "to": "541112345678",
+  "content": "Hello from anyzzapp!",
+  "message_type": "text"
 }
 ```
 
-to: is the recipient's phone number in E.164 international format (without +, without spaces, without dashes).
+to: is the recipient's phone number in E.164 international format (without +, without spaces, without hyphens).
 
 **Response:**
 
 ```json
 {
-   "message_id": "1234567890", 
-   "status": "OK",
-   "message": "response message"
+  "message_id": "1234567890",
+  "status": "OK",
+  "message": "response message"
 }
 ```
 
-### Webhook (WhatsApp → Your API)
+### Webhook (WhatsApp → This API)
 
 https://developers.facebook.com/docs/whatsapp/cloud-api/get-started#configure-webhooks
 
@@ -91,7 +91,7 @@ https://developers.facebook.com/docs/whatsapp/cloud-api/get-started#configure-we
 POST /api/v1/whatsapp/webhook
 ```
 
-### Verification endpoint (used by WhatsApp Business API):
+#### Webhook Verification Endpoint (used by WhatsApp Business API):
 
 ```
 GET /api/v1/whatsapp/webhook
@@ -119,7 +119,7 @@ curl http://localhost:8080/health
 # Chat endpoint
 curl -X POST http://localhost:8080/api/v1/whatsapp/send \
   -H "Content-Type: application/json" \
-  -H "X-Phone-Number-ID: YOUR_BOT_PHONE_NUMBER_ID" \
+  -H "X-Phone-Number-ID: YOUR_PHONE_NUMBER_ID" \
   -d '{
     "to": "541112345678",
     "content": "Hello from anyzzapp!",
@@ -127,7 +127,8 @@ curl -X POST http://localhost:8080/api/v1/whatsapp/send \
   }'
 ```
 
-note: in test mode, WhatsApp does not allow outgoing text messages from your bot, first the user must write to the bot so that it can reply.
+note: in test mode, WhatsApp does not allow outgoing `text` messages from your bot, the user must first write to the bot
+so that it can reply.
 
 ## 🎗️ Architecture
 
@@ -135,7 +136,7 @@ This project follows Clean Architecture principles:
 
 - **Domain**: Entities, repository interfaces, and use cases
 - **Application**: Implementation of use cases
-- **Infrastructure**: OpenAI repository implementation
+- **Infrastructure**: Implementation of repositories (e.g., OpenAI)
 - **Interfaces**: HTTP controllers and routers
 
 ## Project Structure
@@ -155,7 +156,7 @@ anyzzapp/
 │   └── application/      # Use cases
 ├── main.go               # Main entry point
 ├── go.mod                # Go dependencies
-├── README_ES.md          # README in spanish
+├── README_ES.md          # Spanish readme file
 └── README.md             # This file
 ```
 
@@ -210,10 +211,10 @@ go test -bench=. ./...
 ## Next Steps
 
 - **Add your WhatsApp API key** to the `.env` file
-- **Configure webhook URL** in Meta Business Manager
+- **Configure the webhook URL** in Meta Business Manager
 
 ## Backlog
 
-- [x] Unit Tests 
+- [x] Unit tests
 - [ ] Integration tests
 - [ ] API documentation with Swagger
